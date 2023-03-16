@@ -487,9 +487,34 @@ RunTimeExceptions можно обрабатывать так же как и не
 
 prsf + tab - private static final myVar.
 
+## Функциональное программирование
 
+Функциональный интерфейс содержит единственный метод не default и не private, для реализации.
+@FunctionalInterface - предохраняет от объявления второго метода, не default и не private.
 
+Функциональные интерфейсы позволяют использовать лямбда (стрелочные) функции.
 
+Лямбда выражения можно заменить ещё более лаконичной записью с ссылкой на метод Integer::compare.
+
+Функциональные интерфейсы:
+
+public interface Function<T, R>{
+   R apply(T t);
+}
+
+public interface Predicate<T>{
+   boolean test(T t);
+}
+
+public interface Consumer<T>{
+   void accept(T t);
+}
+
+public interface Supplier<T>{
+   T get();
+}
+
+Ещё BiFunction, BiConsumer.
 
 
 
