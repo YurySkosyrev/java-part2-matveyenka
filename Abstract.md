@@ -516,6 +516,10 @@ public interface Supplier<T>{
 
 Ещё BiFunction, BiConsumer.
 
+## Stream
+
+В Java 1.8 появились Stream. Для их введения были так же добавлены default методы в интерфейсах. default метод позволяет не переопределять одинаковым образом у всех коллекций метод stream() интерфейса Collection.
+
 
 
 
