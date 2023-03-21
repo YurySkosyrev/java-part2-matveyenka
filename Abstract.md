@@ -520,6 +520,21 @@ public interface Supplier<T>{
 
 В Java 1.8 появились Stream. Для их введения были так же добавлены default методы в интерфейсах. default метод позволяет не переопределять одинаковым образом у всех коллекций метод stream() интерфейса Collection.
 
+Существуют три отдельных стрима для примитивных типов: IntStream, LongStream, DoubleStream.
 
+peek - нетерминальный метод, forEach - терминальный.
+
+IntStream.range(0,10) - создать стрим в диапазоне от 0 до 10
+IntStream.iterate(0, func) - бесконечный стрим.
+
+MapReduce - программная модель, которая позволяет преобразовать данные при необходимости их последующей обработки. Обработка происходит параллельно.
+
+Stream.of(...)
+   .parallel()
+   .map(Student::getAge)
+   .reduce(Math::max)
+   .ifPresent(System.out::println)
+
+.sequence - обработка в одном потоке.
 
 
