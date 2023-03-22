@@ -598,6 +598,15 @@ File.pathseparator - разделитель для environment variables.
 Path.of(перечисление папок и файла в пути).
 .toFile - преобразовать в объект типа File.
 
+Класс Reader предназначен для работы с текстовой информацией, а InputStream - с потоком байт.
+Наследники класса Reader:
+InputStreamReader
+BufferReader
+CharArrayReader
+
+Для работы со строками удобно использовать декоратор BufferReader над классом FileReader - наследник InputStreamReader
+
+
 
 
 
