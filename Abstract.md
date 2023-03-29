@@ -606,9 +606,18 @@ CharArrayReader
 
 Для работы со строками удобно использовать декоратор BufferReader над классом FileReader - наследник InputStreamReader
 
+метод flush() нужен при записи в файл с использованием буффера, чтобы в самый последний момент мы не забыли передать буфферезированную информацию. 
 
+System.lineSeparator() - разделитель строк для используемой среды.
 
+Наследники класса Writer:
+PrintWriter
+BufferedWriter
+OutputStreamWriter(FileWriter)
 
+При работе с строками нужно не забывать про кодировку.
+
+BufferedWriter - оболочка FIleWriter (или вообще любой Writer)
 
 
 
