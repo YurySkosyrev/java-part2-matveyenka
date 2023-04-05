@@ -843,3 +843,132 @@ synchronized(Counter.class){...}
 Захват монитора является трудозатратной операцией. SunchronizedList нужно использовать только в крайних случаях.
 
 Начиная с Java 1.5 появляется java.util.Cuncurrent - его и нужно использовать.
+
+## Ключевое слово volatile.
+
+Пример. 
+
+```java
+Thread thread1 = new Thread(() -> {
+   if (!flag) {
+      System.out.println("still false");
+   }
+}); 
+thread1.start();
+
+Thread.sleep(5L);
+
+Thread thread2 = new (() -> {
+   flag = true;
+   System.out.println("flag set true");
+});
+thread2.start();
+```
+
+Может возникнуть ситуация, что изменения flag во втором потоке, не увидит первый поток.
+
+Это возникает от того, что каждый поток будет запущен на своём процессоре, который запишет flag в свой кэш, чтобы не обращаться постоянно в RAM. <br>
+Каждое ядро процессора содержит свой кэш, причем несколько уровней.
+
+Таким образом thread2 может не сразу изменить значение flag в RAM, хотя в его кэше оно изменилось. А thread1 может не сразу обновить значение flag в своём кэше, хотя изменилось в RAM.
+
+Чтобы не допускать этой проблемы можно использовать слово **volatile** - оно означает, что для данной переменной не нужно использовать оптимизации: кэш процессора или менять код на уровне JVM.
+
+**volatile** работает для примитивов и ссылок. Содержимое по ссылке не гарантировано.<br>
+При одном ядре всё равно нужно использовать **volatile** так как существуют оптимизации JVM.
+
+## Потокобезопасный объект
+
+Пример многопоточности: 1 Java приложение на сайте и много пользователей, которые хотят с ним работать.
+
+Способы потокобезопасности:
+
+1. Не создавать общих ресурсов, создаём только локальные переменные и не передаём их потокам. Если не передавать в поток, то ссылка хранится в стековой области памяти одного потока main и никто не может обратиться к одной и той же области памяти, где хранится объект по этой ссылке. Только один поток => потокобезопасность.
+2. Создавать классы без полей. Методы потокобезопасны так как они не используют поля классов (кроме статических констант).
+3. Неизменяемость объекта. Создаём класс, объекты которого immitable, т.е. при всех операциях создаётся новый объект.
+4. Создавать только Read-only методы, но следить, чтобы не возвращались mutable поля. Чтобы сделать объект immutable нужно чем-то пожертвовать (памятью или быстродействием).
+5. Всегда использовать все методы синхронизированными (synchronized, java.utilCuncurrent, synchronized-блок).
+
+## Deadlock.
+
+В блок synchronized можно передать только один объект.
+
+```java
+public class Account {
+    
+    private static int generator = 1;
+    private int id;
+    private int money;
+
+    public Account(int money) {
+        this.id = generator++;
+        this.money = money;
+    }
+    
+    public void add(int money) {
+        this.money += money;
+    }
+    
+    public boolean takeOff(int money) {
+        if (this.money >= money) {
+            this.money -= money;
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return "Account{" +
+                "id=" + id +
+                ", money=" + money +
+                '}';
+    }
+}
+
+public class AccountThread extends Thread{
+
+    private final Account accountFrom;
+    private final Account accountTo;
+
+    public AccountThread(Account accountFrom, Account accountTo) {
+        this.accountFrom = accountFrom;
+        this.accountTo = accountTo;
+    }
+
+    @Override
+    public void run() {
+        for (int i = 0; i < 2000; i++) {
+            synchronized (accountFrom){
+                synchronized (accountTo) {
+                    if (accountFrom.takeOff(10)) {
+                        accountTo.add(10);
+                    }
+                }
+            }
+        }
+    }
+}
+
+public class AccountDemo {
+    public static void main(String[] args) throws InterruptedException {
+        Account account1 = new Account(20000);
+        Account account2 = new Account(20000);
+        
+        AccountThread accountThread1 = new AccountThread(account1, account2);
+        AccountThread accountThread2 = new AccountThread(account2, account1);
+        
+        accountThread1.start();
+        accountThread2.start();
+
+        accountThread1.join();
+        accountThread2.join();
+
+        System.out.println(account1);
+        System.out.println(account2);
+    }
+}
+
+```
+Может возникнуть ситуация, что accountThread1 захватит монитор объекта account1, а accountThread2 захватит монитор account2, при этом accountThread1 будет ждать освобождения account2, а accountThread2 - account1.
+Возникает deadlock.
