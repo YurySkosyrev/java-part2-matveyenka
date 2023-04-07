@@ -1048,4 +1048,71 @@ AtomicReferenсe часто используется при работе с ко
 
 ## Lock
 
-Lock - замена 
+Lock - замена synchronized методам и блокам. Выделяется отдельный класс, по сути используют поле в каждом из объектов, которое имеет тип Lock. Обязанность за lock монитора нашего объекта выносится в стороннее поле. 
+Будет блокироваться не монитор объекта, а монитор lockа.
+Все операции проходят через объекты Unsafe, то есть на очень низком уровне.
+
+Добавим в класс Account поле Lock 
+
+```java
+public class Account {
+    
+    private static int generator = 1;
+	private final Lock lock = new ReentrantLock();
+    private int id;
+    private int money;
+	...
+}
+
+
+public class AccountThread extends Thread{
+
+    private final Account accountFrom;
+    private final Account accountTo;
+
+    public AccountThread(Account accountFrom, Account accountTo) {
+        this.accountFrom = accountFrom;
+        this.accountTo = accountTo;
+    }
+
+    @Override
+    public void run() {
+        for (int i = 0; i < 2000; i++) {
+            lockAccounts();
+			try {
+            	if (accountFrom.takeOff(10)) {
+                	accountTo.add(10);
+          		}
+			} finally {
+				accountFrom.getLock().unlock();
+				accountTo.getLock().unlock();
+			}
+        }
+    }
+
+	private void lockAccounts(){
+		while(true) {
+			boolean fromLockResult = accountFrom.getLock().tryLock();
+			boolean toLockResult = accountTo.getLock().tryLock();
+			if (fromLockResult && toLockResult) {
+				break;
+			}
+			if (fromLockResult) {
+				accountFrom.getLock().unlock();
+			}
+			if (toLockResult) {
+				accountTo.getLock().unlock();
+			}	
+		}	
+	}
+}
+```
+Метод unlock() можно вызвать только у объекта у которого захвачен монитор, иначе будет exception.
+
+В случае возникновения ошибок в методах takeOff и add мы можем не отпустить мониторы наших локов, поэтому в блоке finally необходимо отпустить мониторы.
+
+Таким образом если необходимо захватить монитор у объекта, лучше захватить его у объекта класса Lock.
+
+ReentrantReadWriteLock - ещё одна часто используемая реализация Lock(). Используется в тех случаях, когда нужно читать из многих потоков, а записывать из одного.
+
+
