@@ -1115,4 +1115,68 @@ public class AccountThread extends Thread{
 
 ReentrantReadWriteLock - ещё одна часто используемая реализация Lock(). Используется в тех случаях, когда нужно читать из многих потоков, а записывать из одного.
 
+## THread pool
+
+Thread pool - множество объектов типа Thread, которые можно использовать для решения различных задач.
+
+Создание потока - трудозатратная операция по времени.
+
+Метод run() у потока вызывается автоматически, как только поток был создан JVM.
+
+Таким образом можно один раз создать несколько потоков и по мере их освобождения поручать им решение различных задач.
+
+```java
+public class PoolThread extends Thread{
+    
+    private final Queue<Runnable> tasks;
+
+    public PoolThread(Queue<Runnable> tasks) {
+        this.tasks = tasks;
+    }
+
+    @Override
+    public void run() {
+        while(true) {
+            Optional<Runnable> task = Optional.empty();
+            synchronized (tasks) {
+                if (!task.isEmpty()) {
+                    task = Optional.of(tasks.remove());
+                }
+            }
+            task.ifPresent(Runnable::run);
+        }
+    }
+}
+```
+
+Для создание ThreadPool есть утилитный класс - Executors.
+
+```java
+public class ThreadPoolDemo {
+
+    public static void main(String[] args) {
+        
+        // создаётся один поток
+        Executors.newSingleThreadExecutor();
+
+        // pool из 5 потоков
+        Executors.newFixedThreadPool(5);
+
+        // безграничный метод, сколько задач отправили, столько будет потоков
+        // при этом если в следующий раз передаётся меньше потоков, то новые не будут созданы
+        // если больше, то создадутся новые.
+        Executors.newCachedThreadPool();
+
+        // выполнение задач с задержкой по времени
+        Executors.newScheduledThreadPool(3);
+
+        // создаёт thread pool на основании другой реализации thread pool
+        // ForlJoinPool - создаёт пулл оптимального размера, исходя из колличества
+        // свободных процессоров, можем не задумываться о колличестве потоков
+        Executors.newWorkStealingPool();
+
+    }
+}
+```
+
 
