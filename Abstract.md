@@ -1115,7 +1115,7 @@ public class AccountThread extends Thread{
 
 ReentrantReadWriteLock - ещё одна часто используемая реализация Lock(). Используется в тех случаях, когда нужно читать из многих потоков, а записывать из одного.
 
-## THread pool
+## Thread pool
 
 Thread pool - множество объектов типа Thread, которые можно использовать для решения различных задач.
 
@@ -1179,4 +1179,44 @@ public class ThreadPoolDemo {
 }
 ```
 
+Интерфейс Callable появился с пакетом java.util.cuncurrent отличается от Runnable тем, что возвращает результат и пробрасывает исключение.
+
+threadPool создается следующим образом:
+
+```java
+ExecutorService threadPool = Executors.newFixedThreadPool(5);
+
+```
+
+threadPool обычно является полем у объекта, либо статическим полем у класса.
+
+Потоки в threadPool нужно закрывать методом shutdown().
+
+Методы threadPool:
+
+* submit() передаем задачу, нужен результат 
+
+* execute() - передаём задачу, результат не нужен. 
+
+* shutdown() - дождаться завершения всех задач.
+
+* shutdownNow() - возвращает List<Runnable> лист незавершенных задач.
+
+* awaitTermination(long timeout, TimeUnit unit) - сколько нужно ожидать при shutdown().
+
+* invokeAll() - передаем сразу коллекцию задач, и получаем лист Future. Ограничение - все задачи должны быть параметризованы одним и тем же типом.
+
+Future - объект с результатом выполнения задачи в будущем. Позволяет выполнять задачи, не блокируя основной поток.
+
+get() - получить значение Future. До вызова get() никакой поток не блокируется.
+
+Основная реализация Future - CompletableFuture.
+
+Если не передаем в CompletableFuture ThreadPool, то вызывается ASYNC_POOL - дефолтный threadPool, статическое поле.
+
+Методы newScheduledThreadPool():
+
+* schedule(Runnable command, long delay, TimeUnit unit) - задаём ещё и задержку по времени, после которой начинается выполение задачи.
+
+* scheduleAtFixedRate() - задаётся время задержки и переодичность выполнения. shutdown() делать не нужно, потому, что это задача у будущем.
 
