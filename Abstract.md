@@ -1220,3 +1220,182 @@ get() - получить значение Future. До вызова get() ник
 
 * scheduleAtFixedRate() - задаётся время задержки и переодичность выполнения. shutdown() делать не нужно, потому, что это задача у будущем.
 
+## Потокобезопасные коллекции
+
+Все коллекции имеют свои потокобезопасные аналоги из пакета java.util.cuncurrent.
+
+Аналог Set - CopyOnWriteArraySet. Имеет одно поле CopyOnWriteArrayList\<E> al.
+
+CopyOnWriteArrayList работает таким образом, что при считывании данных (read) не блокирует потоки. 
+При записи создаётся копия листа и потоки блокируются. Но при этом чтение выполняется из копии, пока исходный
+лист не будет окончательно заменён.
+
+CopyOnWriteArrayList следует использовать тогда, когда много операций на чтение и мало на запись. В противном случае 
+будет overhead по памяти, т.к. при каждой операции записи создаётся массив-копия.
+
+## Семафоры
+
+Самое простое средство контроля за тем, сколько потоков могут одновременно работать — семафор. Как на железной дороге. Горит зелёный — можно. Горит красный — ждём. Что мы ждём от семафора? Разрешения. Разрешение на английском — permit. Чтобы получить разрешение — его нужно получить, что на английском будет acquire. А когда разрешение больше не нужно мы его должны отдать, то есть освободить его или избавится от него, что на английском будет release. Посмотрим, как это работает.
+
+```java
+public static void main(String[] args) throws InterruptedException {
+	Semaphore semaphore = new Semaphore(0);
+	Runnable task = () -> {
+		try {
+			semaphore.acquire();
+			System.out.println("Finished");
+			semaphore.release();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	};
+	new Thread(task).start();
+	Thread.sleep(5000);
+	semaphore.release(1);
+}
+```
+
+Как видим, запомнив английские слова, мы понимаем, как работает семафор. Интересно, что главное условие — на "счету" семафора должен быть положительное количество permit'ов. Поэтому, инициировать его можно и с минусом. И запрашивать (acquire) можно больше, чем 1.
+
+При вызове acquire() если в семафоре есть permits, то происходит инкремент и поток пропускается дальше, если нет - то ожидает. При release() permits возвращается обратно в семафор.
+
+При создании объекта Semaphore задаётся как раз число permits.
+
+## CountDownLatch.
+
+Это похоже на бега или гонки, когда все собираются у стартовой линии и когда все готовы — дают разрешение, и все одновременно стартуют. Пример:
+
+```java
+public static void main(String[] args) {
+	CountDownLatch countDownLatch = new CountDownLatch(3);
+	Runnable task = () -> {
+		try {
+			countDownLatch.countDown();
+			System.out.println("Countdown: " + countDownLatch.getCount());
+			countDownLatch.await();
+			System.out.println("Finished");
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	};
+	for (int i = 0; i < 3; i++) {
+		new Thread(task).start();
+ 	}
+}
+```
+
+await на английском — ожидать. То есть мы сначала говорим countDown. Как говорит гугл переводчик, count down — "an act of counting numerals in reverse order to zero", то есть выполнить действие по обратному отсчёту, цель которого — досчитать до нуля. А дальше говорим await — то есть ожидать, пока значение счётчика не станет ноль.
+
+Интересно, что такой счётчик — одноразовый. Как сказано в JavaDoc — "When threads must repeatedly count down in this way, instead use a CyclicBarrier", то есть если нужен многоразовый счёт — надо использовать другой вариант, который называется CyclicBarrier.
+
+## CyclicBarier.
+
+```java
+public static void main(String[] args) throws InterruptedException {
+	Runnable action = () -> System.out.println("На старт!");
+	CyclicBarrier berrier = new CyclicBarrier(3, action);
+	Runnable task = () -> {
+		try {
+			berrier.await();
+			System.out.println("Finished");
+		} catch (BrokenBarrierException | InterruptedException e) {
+			e.printStackTrace();
+		}
+	};
+	System.out.println("Limit: " + berrier.getParties());
+	for (int i = 0; i < 3; i++) {
+		new Thread(task).start();
+	}
+}
+```
+
+Как видим, поток выполняет await, то есть ожидает. При этом уменьшается значение барьера. Барьер считается сломанным (berrier.isBroken()), когда отсчёт дошёл до нуля.
+
+Чтобы сбросить барьер, нужно вызвать berrier.reset(), чего не хватало в CountDownLatch.
+
+## Exchanger
+
+Следующее средство — Exchanger. Exchange с английского переводится как обмен или обмениваться. А Exchanger — обменник, то есть то, через что обмениваются. Посмотрим на простейший пример:
+```java
+public static void main(String[] args) {
+	Exchanger<String> exchanger = new Exchanger<>();
+	Runnable task = () -> {
+		try {
+			Thread thread = Thread.currentThread();
+			String withThreadName = exchanger.exchange(thread.getName());
+			System.out.println(thread.getName() + " обменялся с " + withThreadName);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	};
+	new Thread(task).start();
+	new Thread(task).start();
+}
+```
+Тут мы запускаем два потока. Каждый из них выполняет метод exchange и ожидает, когда другой поток так жевыполнит метод exchange. Таким образом, потоки обменяются между собой переданными аргументами.
+
+Интересная штука. Ничего ли она вам не напоминает?
+
+А напоминает он SynchronousQueue, которая лежит в основе cachedThreadPool'а.
+
+## Phaser
+
+Phaser вполне естественно расширяет функциональность предшественника из JDK 1.5, CyclicBarrier (про него можно почитать тут):
+* Количество участников барьера может меняться.
+* Поток не обязан ожидать, пока все участники соберутся на барьере. Достаточно только сообщить о готовности своей работы.
+* Наоборот, потоку необязательно быть участником барьера, чтобы ожидать его преодоления.
+
+Кстати, это расширение настолько общо, что согласуется и с контрактом третьего барьера из стандартной библиотеки, CountDownLatch.
+
+Состояние этапщика включает
+- номер этапа (фазы, цикла синхронизации) | int phase
+- количество участников | int parties
+- количество участников, которые заявили/не заявили о своей готовности | int arrived, unarrived
+- состояние завершения | boolean terminated
+
+0.Если этапщик находится в терминальном состоянии (terminated = true), он не изменяем; вызов любого управляющего метода возвращает немедленно. Phase имеет отрицательное значение, parties, arrived, unarrived — значение в момент завершения.
+
+ 
+1.Основные управляющие методы:
+- register()	зарегистрировать участника
+- arrive()	сообщить этапщику о своей готовности, не ожидая открытия барьера
+- arriveAndAwaitAdvance()	классическое прибытие на барьер. Точный аналог CyclicBarrier.await()
+- arriveAndDeregister()	отменить свое участие
+
+Ясное дело, как и в других синхронизаторах из JDK, вызывающий поток в управляющих методах не отслеживается, поэтому термины вроде «потока-участника» и «своей регистрации» условны. Т. е. заряженный пистолет уже у нас в руках, осталось направить его на ногу и спустить курок :-) Впрочем, несложно написать обертку, исправляющую эту опасную ситуацию.
+ 
+2.Барьер открывается сразу после всякого уменьшения unarrived до нуля.1 То есть, в том числе, когда снимается последний участник, однако при создании «пустого» этапщика (new Phaser() или new Phaser(0)) «ворота закрыты».
+
+Так или иначе, преодолеть барьер можно только с вызовом одного из методов, начинающихся на «arrive». В контексте потока, который это сделает, выполняется protected-метод onAdvance(phase, parties) — если он возвращает true, этапщик завершает свою работу (terminated ← true). Этот механизм позволяет управлять жизненным циклом изнутри класса. В дефолтной реализации phaser умирает как раз если с барьера ушли все участники (parties = 0).
+
+Открытие барьера есть переход на новый этап: phase ← phase + 1.
+
+```java
+public static void main(String[] args) throws InterruptedException {
+        Phaser phaser = new Phaser();
+        // Вызывая метод register, мы регистрируем текущий поток (main) как участника
+        phaser.register();
+        System.out.println("Phasecount is " + phaser.getPhase());
+        testPhaser(phaser);
+        testPhaser(phaser);
+        testPhaser(phaser);
+        // Через 3 секунды прибываем к барьеру и снимаемся регистрацию. Кол-во прибывших = кол-во регистраций = пуск
+        Thread.sleep(3000);
+        phaser.arriveAndDeregister();
+        System.out.println("Phasecount is " + phaser.getPhase());
+    }
+
+    private static void testPhaser(final Phaser phaser) {
+        // Говорим, что будет +1 участник на Phaser
+        phaser.register();
+        // Запускаем новый поток
+        new Thread(() -> {
+            String name = Thread.currentThread().getName();
+            System.out.println(name + " arrived");
+            phaser.arriveAndAwaitAdvance(); //threads register arrival to the phaser.
+            System.out.println(name + " after passing barrier");
+        }).start();
+    }
+```
+Из примера видно, что барьер при использовании Phaser'а прорывается, когда количество регистраций совпадает с количеством прибывших к барьеру.
+
