@@ -1,4 +1,4 @@
-package barrier;
+package com.edu.barrier;
 
 import java.util.Arrays;
 import java.util.concurrent.CyclicBarrier;
@@ -8,7 +8,8 @@ import java.util.concurrent.TimeUnit;
 
 public class BarrierDemo {
     public static void main(String[] args) throws InterruptedException {
-        CyclicBarrier cyclicBarrier = new CyclicBarrier(RocketDetail.values().length, () -> System.out.println("Пуск!"));
+        CyclicBarrier cyclicBarrier = new CyclicBarrier(RocketDetail.values().length,
+                () -> System.out.println("Пуск!"));
 
         ExecutorService threadPool = Executors.newCachedThreadPool();
 

@@ -1,4 +1,4 @@
-package oop;
+package com.edu.oop;
 
 public class Computer {
     public void print() {

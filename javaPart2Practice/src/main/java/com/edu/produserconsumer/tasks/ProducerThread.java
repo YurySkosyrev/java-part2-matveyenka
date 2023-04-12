@@ -1,8 +1,8 @@
-package produserConsumerTask;
+package com.edu.produserconsumer.tasks;
 
 import java.util.Queue;
 
-public class ProducerThread implements Runnable{
+public class ProducerThread implements Runnable {
 
     private final Queue<Integer> list;
 

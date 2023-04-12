@@ -1,4 +1,4 @@
-package threadPoolExample;
+package com.edu.threadpool.example;
 
 import java.util.concurrent.*;
 

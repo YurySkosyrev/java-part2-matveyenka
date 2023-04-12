@@ -1,4 +1,4 @@
-package latch;
+package com.edu.latch;
 
 import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;

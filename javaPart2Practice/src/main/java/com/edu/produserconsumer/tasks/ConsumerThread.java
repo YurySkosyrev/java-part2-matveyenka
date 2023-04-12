@@ -1,8 +1,8 @@
-package produserConsumerTask;
+package com.edu.produserconsumer.tasks;
 
 import java.util.Queue;
 
-public class ConsumerThread implements Runnable{
+public class ConsumerThread implements Runnable {
 
     private final Queue<Integer> list;
 
@@ -14,7 +14,7 @@ public class ConsumerThread implements Runnable{
     public void run() {
         synchronized (list) {
             while (true) {
-                if(!list.isEmpty()) {
+                if (!list.isEmpty()) {
                     Integer removeValue = list.remove();
                     System.out.println("consumer get value: " + removeValue + ". Size " + list.size());
                 } else {

@@ -1,4 +1,4 @@
-package latch;
+package com.edu.barrier;
 
 public enum RocketDetail {
     PART1,

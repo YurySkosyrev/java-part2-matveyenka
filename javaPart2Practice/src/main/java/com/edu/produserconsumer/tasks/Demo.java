@@ -1,4 +1,4 @@
-package produserConsumerTask;
+package com.edu.produserconsumer.tasks;
 
 import java.util.LinkedList;
 import java.util.Queue;
