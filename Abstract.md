@@ -1399,6 +1399,8 @@ public static void main(String[] args) throws InterruptedException {
 ```
 Из примера видно, что барьер при использовании Phaser'а прорывается, когда количество регистраций совпадает с количеством прибывших к барьеру.
 
+ThreadLocal<T> переменная, которая хранит значение для каждого потока. Основана на map (имя потока, значение переменной)
+
 ## Регулярные выражения.
 
 ^ - начало проверяемой строки<br>
@@ -1423,9 +1425,63 @@ $ - конец проверяемой строки<br>
 
 ^(1|2|3)$ - мета-символ или. 1 или 2 или 3
 
+() - группы <br>
+"(//d{3})(a-z{4})//2" - // ссылка на группу 2 (a-z{4}), в данном выражении.
+
 [Nn], [a-zA-Z0-9] - символьные классы
 
 [^089] - исключающий символ, всё кроме 8,9,0.
+
+```java
+Pattern pattern = Pattern.compile("\\d{3}");
+Matcher matcher = pattern.matcher("123");
+System.out.Println(matcher.match) // true
+
+Pattern.matches(regex, str) // более короткая запись
+str.matches(regex) // ещё один вариант
+```
+
+##Find()
+
+У объекта matcher в цикле while можно вызвать метод find() и пройти по всем совпадениям по регулярному выражению.
+
+```java
+String regex = "(\\+7)(?<code>\\d{4})"
+while (matcher.find()) {
+    System.out.println(matcher.group());
+     System.out.println(matcher.group(0)); // аналог вызова метода group() без параметров
+    System.out.println(matcher.group("code")); // к группе можно обрабиться по имени
+}
+```
+
+(?://d) - исключить группу из списка групп регулярного выражения.
+
+## Замена подстрок
+
+```java
+String phoneNumber = ...
+String regex = ...
+String replaceExpression
+Pattern pattern = Pattern.compile(regex);
+Matcher matcher = pattern.matcher(phoneNumber);
+StringBuilder stringBuilder = mew StringBuilder();
+while (matcher.find()) {
+    matcher.appendReplacement(stringBuilder, replaceExpression); // Заменить подходящую подстроку на replaceExpression
+
+    //matcher.appendReplacement(stringBuilder, "$2"); - ссылка на 2 группу.
+}
+matcher.appendTail(stringBuilder); // без этого остаток строки после послднего найденного вхождения regex будет потерян.
+
+System.out.println(stringBuilder);
+System.out.println(phoneNumber.replaceAll(regex, "$2"));
+```
+
+Квантификатор + - жадный, чтобы он был ленивым нужно поставить знак ?.
+
+
+
+
+
 
 
 
