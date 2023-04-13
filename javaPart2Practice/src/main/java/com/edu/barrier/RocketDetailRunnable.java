@@ -3,7 +3,7 @@ package com.edu.barrier;
 import java.util.concurrent.BrokenBarrierException;
 import java.util.concurrent.CyclicBarrier;
 
-public class RocketDetailRunnable implements Runnable{
+public class RocketDetailRunnable implements Runnable {
 
     private final RocketDetail rocketDetail;
     private final CyclicBarrier cyclicBarrier;

@@ -3,7 +3,7 @@ package com.edu.threadpool.example;
 import java.util.Optional;
 import java.util.Queue;
 
-public class PoolThread extends Thread{
+public class PoolThread extends Thread {
 
     private final Queue<Runnable> tasks;
 
@@ -13,7 +13,7 @@ public class PoolThread extends Thread{
 
     @Override
     public void run() {
-        while(true) {
+        while (true) {
             Optional<Runnable> task = Optional.empty();
             synchronized (tasks) {
                 if (!task.isEmpty()) {

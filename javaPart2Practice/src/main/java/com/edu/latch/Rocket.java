@@ -2,7 +2,7 @@ package com.edu.latch;
 
 import java.util.concurrent.CountDownLatch;
 
-public class Rocket implements Runnable{
+public class Rocket implements Runnable {
 
     private final CountDownLatch countDownLatch;
 

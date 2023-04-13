@@ -2,11 +2,11 @@ package com.edu.oop;
 
 public class Mobile extends Computer {
 
-    public void print(){
+    public void print() {
         System.out.println("This is print from Mobile");
     }
 
-    public void turn(){
+    public void turn() {
         System.out.println("Turn on");
     }
 }
