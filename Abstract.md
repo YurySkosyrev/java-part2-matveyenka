@@ -1562,8 +1562,48 @@ public class ReflectionApiExample {
         System.out.println(user);
     }
 }
-
 ```
+## Аннотации
+
+**Аннотация** - метаданные для класса, которую можно ставить над полями, методами, классом, принадлежит объекту класса Class
+
+```Java
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.SOURCE)
+public @interface Override {
+}
+
+public enum RetentionPolicy {
+    SOURCE, // Аннотация доступна только в исходном коде, после компилияции пропадает
+    CLASS, // Практически не используется, в Runtime использовать нельзя, но она останется в коде после компиляции (по умолчанию)
+    RUNTIME // Доступна в Runtime
+}
+```
+В аннотациях могут быть методы, но можно возвращать только enum, строки, примитивные типа, объекты класса Class.
+Можно ставить default - значение по умолчанию.
+
+```Java
+@Target({ElementType.TYPE,
+        ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface MinAge {
+
+    int age() default 18;
+}
+
+public class User extends Person implements Serializable, Comparable {
+
+    private String name;
+    @MinAge(age = 21)
+    private int age;
+
+    ...
+}
+
+User.class.getDeclaredField("age").getAnnotation(MinAge.class).age() // 21 получаем в debug
+```
+
+ield.setAccessible(true) - позволяет получить доступ даже к полям Private.
 
 
 

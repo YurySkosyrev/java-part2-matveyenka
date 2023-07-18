@@ -4,7 +4,7 @@ import java.lang.reflect.*;
 
 public class ReflectionApiExample {
     public static void main(String[] args) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
-        User user = new User(25L, "Ivan");
+        User user = new User(25L, "Ivan", 20);
 //        Class<? extends User> userClass = user.getClass();
 //        Class<User> userClass1 = User.class;
 //        System.out.println(userClass == userClass1);
